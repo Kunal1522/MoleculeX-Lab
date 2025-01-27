@@ -22,6 +22,7 @@ const ModalLayout = () => {
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState([]);
   const [userId, setUserId] = useState<string | null>(null);
+
   useEffect(() => {
     const fetchUserData = async () => {
       if (session?.user?.email) {
@@ -44,59 +45,35 @@ const ModalLayout = () => {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setLoading(true);
-
-    const API_KEY = "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";
-
-    const invokeUrl =
-      "https://health.api.nvidia.com/v1/biology/nvidia/molmim/generate";
+  
     const payload = {
       algorithm: "CMA-ES",
-      num_molecules: parseInt(numMolecules),
+      num_molecules: 30,
       property_name: "QED",
       minimize: false,
-      min_similarity: parseFloat(minSimilarity),
-      particles: parseInt(particles),
-      iterations: parseInt(iterations),
-      smi: smiles,
+      min_similarity: 0.3,
+      particles: 30,
+      iterations: 10,
+      smi: "[H][C@@]12Cc3c[nH]c4cccc(C1=C[C@H](NC(=O)N(CC)CC)CN2C)c34"
     };
+
     try {
-      const response = await fetch(invokeUrl, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${API_KEY}`,
-          Accept: "application/json",
-          "Content-Type": "application/json",
+      const response = await fetch(
+        "/api/generate-molecules",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload)
         },
-        body: JSON.stringify(payload),
-      });
+      );    
       const data = await response.json();
-      console.log(data);
       const generatedMolecules = JSON.parse(data.molecules).map((mol: any) => ({
         structure: mol.sample,
         score: mol.score,
       }));
-
       setMolecules(generatedMolecules);
-
-      if (userId) {
-        await createMoleculeGenerationHistory(
-          {
-            smiles,
-            numMolecules: parseInt(numMolecules),
-            minSimilarity: parseFloat(minSimilarity),
-            particles: parseInt(particles),
-            iterations: parseInt(iterations),
-            generatedMolecules,
-          },
-          userId,
-        );
-
-        const updatedHistory = await getMoleculeGenerationHistoryByUser(userId);
-        setHistory(updatedHistory);
-      } else {
-        console.error("User ID is not available.");
-      }
-
       console.log(generatedMolecules);
     } catch (error) {
       console.error("Error fetching data:", error);
