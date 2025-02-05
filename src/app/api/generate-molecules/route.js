@@ -1,5 +1,5 @@
 export async function POST(req) {
-  const API_KEY = "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";
+  const API_KEY = "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";
   const invokeUrl = "https://health.api.nvidia.com/v1/biology/nvidia/molmim/generate";
 
   try {

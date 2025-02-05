@@ -48,12 +48,12 @@ const ModalLayout = () => {
   
     const payload = {
       algorithm: "CMA-ES",
-      num_molecules: 30,
+      num_molecules: parseInt(numMolecules, 10),
       property_name: "QED",
       minimize: false,
-      min_similarity: 0.3,
-      particles: 30,
-      iterations: 10,
+      min_similarity: parseFloat(minSimilarity),
+      particles: parseInt(particles, 10),
+      iterations: parseInt(iterations, 10),
       smi: "[H][C@@]12Cc3c[nH]c4cccc(C1=C[C@H](NC(=O)N(CC)CC)CN2C)c34"
     };
 
@@ -74,6 +74,24 @@ const ModalLayout = () => {
         score: mol.score,
       }));
       setMolecules(generatedMolecules);
+      if (userId) {
+        await createMoleculeGenerationHistory(
+          {
+            smiles,
+            numMolecules: parseInt(numMolecules),
+            minSimilarity: parseFloat(minSimilarity),
+            particles: parseInt(particles),
+            iterations: parseInt(iterations),
+            generatedMolecules,
+          },
+          userId,
+        );
+
+        const updatedHistory = await getMoleculeGenerationHistoryByUser(userId);
+        setHistory(updatedHistory);
+      } else {
+        console.error("User ID is not available.");
+      }
       console.log(generatedMolecules);
     } catch (error) {
       console.error("Error fetching data:", error);
